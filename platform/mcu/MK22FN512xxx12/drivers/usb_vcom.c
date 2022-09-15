@@ -29,13 +29,13 @@
  */
 
 #include <interfaces/gpio.h>
+#include <interfaces/com_port.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <MK22F51212.h>
 
 #include "usb/usb.h"
-#include "usb_vcom.h"
 #include "usb/fsl_common.h"
 #include "usb/usb_device.h"
 #include "usb/usb_device_ch9.h"
@@ -598,7 +598,7 @@ void USB0_IRQHandler(void)
  *                                                                            *
  ******************************************************************************/
 
-void vcom_init()
+void com_init()
 {
     SIM->CLKDIV2 = SIM_CLKDIV2_USBDIV(0)
                  | SIM_CLKDIV2_USBFRAC(0);
@@ -625,7 +625,13 @@ void vcom_init()
     USB_DeviceRun(cdcVcom.deviceHandle);
 }
 
-ssize_t vcom_writeBlock(const void *buf, size_t len)
+void com_terminate()
+{
+    USB_DeviceStop(kUSB_ControllerKhci0);
+    SIM->SCGC4 &= ~SIM_SCGC4_USBOTG(1);
+}
+
+ssize_t com_writeBlock(const void *buf, const size_t len)
 {
     if((cdcVcom.attach == 1) && (cdcVcom.startTransactions == 1))
     {
@@ -647,7 +653,7 @@ ssize_t vcom_writeBlock(const void *buf, size_t len)
     return len;
 }
 
-ssize_t vcom_readBlock(void* buf, size_t len)
+ssize_t com_readBlock(void* buf, const size_t len)
 {
     if(recvSize != 0)
     {

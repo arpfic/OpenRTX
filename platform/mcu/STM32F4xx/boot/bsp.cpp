@@ -28,7 +28,7 @@
 #include <kernel/kernel.h>
 #include <kernel/sync.h>
 #include <hwconfig.h>
-#include "../drivers/usb_vcom.h"
+#include <interfaces/com_port.h>
 #include "../drivers/USART3.h"
 
 namespace miosix
@@ -75,7 +75,7 @@ void IRQbspInit()
 
 void bspInit2()
 {
-    vcom_init();
+    com_init();
 }
 
 //

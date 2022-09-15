@@ -18,7 +18,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <usb_vcom.h>
+#include <interfaces/com_port.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <xmodem.h>
@@ -48,7 +48,7 @@ static void waitForData(uint8_t *ptr, size_t size)
 
     while(curSize < size)
     {
-        ssize_t recvd = vcom_readBlock(ptr + curSize, size - curSize);
+        ssize_t recvd = com_readBlock(ptr + curSize, size - curSize);
         if(recvd >= 0) curSize += recvd;
     }
 }
@@ -77,12 +77,12 @@ void xmodem_sendPacket(const void *data, size_t size, uint8_t blockNum)
     uint16_t crc = crc_ccitt(data, size);
 
     // Send header, then data and finally CRC
-    vcom_writeBlock(buf, 3);
-    vcom_writeBlock(data, size);
+    com_writeBlock(buf, 3);
+    com_writeBlock(data, size);
 
     buf[0] = crc >> 8;
     buf[1] = crc & 0xFF;
-    vcom_writeBlock(buf, 2);
+    com_writeBlock(buf, 2);
 }
 
 size_t xmodem_receivePacket(void* data, uint8_t expectedBlockNum)
@@ -142,7 +142,7 @@ ssize_t xmodem_sendData(size_t size, int (*callback)(uint8_t *, size_t))
         if(callback(dataBuf, blockSize) < 0)
         {
             cmd = CAN;
-            vcom_writeBlock(&cmd, 1);
+            com_writeBlock(&cmd, 1);
             return -1;
         }
 
@@ -182,7 +182,7 @@ ssize_t xmodem_sendData(size_t size, int (*callback)(uint8_t *, size_t))
 
     // End of transfer
     cmd = EOT;
-    vcom_writeBlock(&cmd, 1);
+    com_writeBlock(&cmd, 1);
     while(cmd != ACK)
     {
         waitForData(&cmd, 1);
@@ -200,7 +200,7 @@ ssize_t xmodem_receiveData(size_t size, void (*callback)(uint8_t *, size_t))
 
     // Request data transfer in CRC mode
     command = CRC;
-    vcom_writeBlock(&command, 1);
+    com_writeBlock(&command, 1);
 
     while(rcvdSize < size)
     {
@@ -224,7 +224,7 @@ ssize_t xmodem_receiveData(size_t size, void (*callback)(uint8_t *, size_t))
             command = ACK;
         }
 
-        vcom_writeBlock(&command, 1);
+        com_writeBlock(&command, 1);
     }
 
     // Wait for EOT from the sender, ACK and return
@@ -235,7 +235,7 @@ ssize_t xmodem_receiveData(size_t size, void (*callback)(uint8_t *, size_t))
     }
 
     command = ACK;
-    vcom_writeBlock(&command, 1);
+    com_writeBlock(&command, 1);
 
     return rcvdSize;
 }

@@ -27,7 +27,7 @@
 #include "stm32f4xx.h"
 
 #include <interfaces/delays.h>
-#include "usb_vcom.h"
+#include <interfaces/com_port.h>
 
 /* Common USB OTG handle, also defined as 'extern' in other modules */
 USB_OTG_CORE_HANDLE USB_OTG_dev;
@@ -41,6 +41,8 @@ static __IO uint32_t usbd_cdc_AltSet = 0;
 
 /* Buffer for OUT endpoint, the one receiving data from host */
 uint8_t outEnpBuffer[CDC_DATA_OUT_PACKET_SIZE];
+
+#define RX_RING_BUF_SIZE 1024
 
 /* Circular buffer for incoming data enqueuement: each packet coming from host
  * is stored here, eventually erasing oldest data.
@@ -205,18 +207,25 @@ static uint16_t VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len);
  *                                                                            *
  ******************************************************************************/
 
-int vcom_init()
+void com_init()
 {
     rxRingBuf.readPtr = 0;
     rxRingBuf.writePtr = 0;
 
     USBD_Init(&USB_OTG_dev, USB_OTG_FS_CORE_ID, &USR_desc, &USBD_CDC_cb,
               &USR_cb);
-
-    return 0;
 }
 
-ssize_t vcom_writeBlock(const void* buf, size_t len)
+void com_terminate()
+{
+     NVIC_DisableIRQ(OTG_FS_IRQn);
+
+     RCC->APB2ENR &= ~RCC_APB2ENR_SYSCFGEN;
+     RCC->AHB2ENR &= ~RCC_AHB2ENR_OTGFSEN;
+     __DSB();
+}
+
+ssize_t com_writeBlock(const void* buf, const size_t len)
 {
     txDone = false;
     DCD_EP_Tx (&USB_OTG_dev, CDC_IN_EP, (uint8_t*) buf, len);
@@ -237,7 +246,7 @@ ssize_t vcom_writeBlock(const void* buf, size_t len)
     return len;
 }
 
-ssize_t vcom_readBlock(void* buf, size_t len)
+ssize_t com_readBlock(void* buf, const size_t len)
 {
     uint8_t *b = ((uint8_t *) buf);
     size_t i;
