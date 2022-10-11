@@ -263,6 +263,7 @@ linux_platform_src = ['platform/targets/linux/emulator/emulator.c',
                       'platform/mcu/x86_64/drivers/gpio.c',
                       'platform/mcu/x86_64/drivers/delays.c',
                       'platform/mcu/x86_64/drivers/rtc.c',
+                      'platform/mcu/x86_64/drivers/pty_vcom.c',
                       'platform/drivers/baseband/radio_linux.cpp',
                       'platform/drivers/audio/audio_linux.c',
                       'platform/drivers/audio/inputStream_linux.cpp',
@@ -272,15 +273,17 @@ linux_platform_src = ['platform/targets/linux/emulator/emulator.c',
 
 linux_src = src + linux_platform_src
 
+linux_inc = inc + ['platform/targets/linux',
+                   'platform/targets/linux/emulator']
 
 # GDx family display emulation
-#linux_def = def + {'SCREEN_WIDTH': '128', 'SCREEN_HEIGHT': '64', 'PIX_FMT_BW': ''}
+#screen_type = {'SCREEN_WIDTH': '128', 'SCREEN_HEIGHT': '64', 'PIX_FMT_BW': ''}
 # MDx family display emulation
-linux_def = def + {'SCREEN_WIDTH': '160', 'SCREEN_HEIGHT': '128', 'PIX_FMT_RGB565': ''}
+screen_type = {'SCREEN_WIDTH': '160', 'SCREEN_HEIGHT': '128', 'PIX_FMT_RGB565': ''}
 
-linux_def += {'VP_USE_FILESYSTEM':''}
-linux_inc  = inc + ['platform/targets/linux',
-                    'platform/targets/linux/emulator']
+linux_def = def + screen_type + {'VP_USE_FILESYSTEM':'', '_XOPEN_SOURCE':'600'}
+linux_inc = inc + ['platform/targets/linux',
+                   'platform/targets/linux/emulator']
 
 if not meson.is_cross_build()
   sdl_dep = dependency('SDL2')

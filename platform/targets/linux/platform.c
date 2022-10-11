@@ -15,9 +15,10 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
+#include <interfaces/com_port.h>
 #include <interfaces/platform.h>
-#include <interfaces/gpio.h>
 #include <interfaces/nvmem.h>
+#include <interfaces/gpio.h>
 #include <stdio.h>
 #include "emulator.h"
 #include <SDL2/SDL.h>
@@ -29,6 +30,7 @@ hwInfo_t hwInfo;
 
 void platform_init()
 {
+    com_init();
     nvm_init();
 
     // Fill hwinfo struct
