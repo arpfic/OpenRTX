@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <interfaces/com_port.h>
+#include <interfaces/platform.h>
 #include <rtxlink.h>
 #include <stdbool.h>
 #include <string.h>
@@ -40,6 +41,7 @@ enum errno
 uint8_t       dataBuf[128];
 size_t        dataBufLen = 0;
 enum dataMode mode = DATAMODE_CAT;
+
 
 /**
  * \internal
@@ -131,7 +133,30 @@ static inline void cat_sendNack(const uint8_t errcode)
  */
 static void cat_cmdGet(const uint8_t *param)
 {
+    if(dataBufPos != 3) cat_sendNack(EBADRQC);
 
+    uint8_t reply[128] = {0};
+    uint8_t replyLen   = 0;
+    reply[0]           = 0x44;
+
+    uint16_t id = (param[0] << 8) | param[1];
+    switch(id)
+    {
+        case 0x494E:    // Radio name
+        {
+            const hwInfo_t *hwinfo = platform_getHwInfo();
+            replyLen = sizeof(hwinfo->name);
+            memcpy(reply + 2, hwinfo->name, replyLen);
+            break;
+        }
+
+        default:
+            cat_sendNack(EBADR);
+            break;
+    }
+
+    reply[1] = replyLen;
+    sendSlipFrame(reply, replyLen + 2);
 }
 
 /**
@@ -150,13 +175,6 @@ static void cat_cmdSet(const uint8_t *param)
 
     switch(id)
     {
-        case 0x4749:    // Radio ID
-            reply[1] = 'T';
-            reply[2] = 'E';
-            reply[3] = 'S';
-            reply[4] = 'T';
-            break;
-
         case 0x5043:    // Reboot
             break;
 
