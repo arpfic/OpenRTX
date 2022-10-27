@@ -20,10 +20,12 @@
 
 #include <interfaces/com_port.h>
 #include <interfaces/platform.h>
+#include <datatypes.h>
 #include <rtxlink.h>
+#include <slip.h>
+#include <state.h>
 #include <stdbool.h>
 #include <string.h>
-#include <slip.h>
 
 enum dataMode
 {
@@ -147,6 +149,18 @@ static void cat_cmdGet(const uint8_t *param)
             const hwInfo_t *hwinfo = platform_getHwInfo();
             replyLen = sizeof(hwinfo->name);
             memcpy(reply + 2, hwinfo->name, replyLen);
+            break;
+        }
+        case 0x5246:    // Receive Frequency
+        {
+            replyLen = sizeof(freq_t);
+            memcpy(reply + 2, (uint8_t *)&state.channel.rx_frequency, replyLen);
+            break;
+        }
+        case 0x5446:    // Transmit Frequency
+        {
+            replyLen = sizeof(freq_t);
+            memcpy(reply + 2, (uint8_t *)&state.channel.tx_frequency, replyLen);
             break;
         }
 
