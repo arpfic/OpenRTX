@@ -23,7 +23,7 @@
 #include <hwconfig.h>
 #include "backlight.h"
 
-#ifndef PLATFORM_MDUV3x0    /* MD-3x0 and MD-9600 */
+#if !defined(PLATFORM_MDUV3x0) && !defined(PLATFORM_DM1701)    /* MD-3x0 and MD-9600 */
 
 void backlight_init()
 {
