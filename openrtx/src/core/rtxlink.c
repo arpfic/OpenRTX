@@ -180,10 +180,9 @@ static void cat_cmdGet(const uint8_t *param)
  */
 static void cat_cmdSet(const uint8_t *param)
 {
-    if(dataBufPos != 7) cat_sendNack(EBADRQC);
-
     uint16_t id  = (param[0] << 8) | param[1];
-    uint32_t val = *((uint32_t *) (param + 2));
+    uint16_t len = param[2];
+    uint32_t val = *((uint32_t *) (param + 3));
     uint8_t  reply[5] = {0};
     reply[0] = 0x41;
 
@@ -196,7 +195,11 @@ static void cat_cmdSet(const uint8_t *param)
             mode = DATAMODE_FILETRANSFER;
             break;
 
-        case 0x5346:    // Set frequency
+        case 0x5246:    // Set rx frequency
+            (void) val;
+            break;
+
+        case 0x5446:    // Set tx frequency
             (void) val;
             break;
 
