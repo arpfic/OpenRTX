@@ -31,19 +31,22 @@ extern "C" {
 
 /**
  * Encode a block of data according to the SLIP protocol.
- * The frame end marker is appended to the end of the data block only when the
- * corresponding function parameter is set to true, allowing to handle a big
- * frame of data into smaller pieces.
+ * The frame start and end markers are prepended/appended to the data block only
+ * when the corresponding function parameters are set to true, allowing to
+ * handle a big frame of data into smaller pieces.
  * Caller must ensure that destination buffer has enough capacity to store the
- * encoded data, which can be up to 2*len + 1 bytes.
+ * encoded data, which can be up to 2*len + 2 bytes.
  *
  * @param src: data to be encoded.
  * @param dst: destination buffer.
  * @param len: length of orginal data, in bytes.
+ * @param start: set to true to prepend the frame start marker at the beginning
+ *               of the block.
  * @param end: set to true to append the frame end marker at the end of the block.
  * @return final data length after the encoding.
  */
-size_t slip_encode(const void *src, void *dst, const size_t len, const bool end);
+size_t slip_encode(const void *src, void *dst, const size_t len, const bool start,
+                   const bool end);
 
 /**
  * Search for the frame end terminator inside a data block.
@@ -56,14 +59,15 @@ size_t slip_encode(const void *src, void *dst, const size_t len, const bool end)
 ssize_t slip_searchFrameEnd(const void *buf, const size_t len);
 
 /**
- * In-place decode a block of data encoded following the SLIP protocol.
+ * Decode a block of data encoded following the SLIP protocol.
  *
- * @param block: data block to be decoded.
- * @param blockLen: length of the data block, in bytes.
+ * @param src: data to be decoded.
+ * @param dst: destination buffer.
+ * @param len: length of orginal data, in bytes.
  * @return number of bytes decoded from the current data block or -1 in case of
  * errors.
  */
-ssize_t slip_decodeBlock(const void *block, const size_t blockLen);
+ssize_t slip_decodeBlock(const void *src, const void *dst, const size_t len);
 
 #ifdef __cplusplus
 }

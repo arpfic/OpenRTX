@@ -28,7 +28,8 @@
 #define ESC_ESC 0xDD
 
 
-size_t slip_encode(const void *src, void *dst, const size_t len, const bool end)
+size_t slip_encode(const void *src, void *dst, const size_t len, const bool start,
+                   const bool end)
 {
     if((src == NULL) || (dst == NULL))
         return 0;
@@ -36,6 +37,13 @@ size_t slip_encode(const void *src, void *dst, const size_t len, const bool end)
     const uint8_t *input  = (uint8_t *) src;
     uint8_t       *output = (uint8_t *) dst;
     size_t         outIdx = 0;
+
+    if(start == true)
+    {
+        // Prepend frame start
+        output[0] = END;
+        outIdx    = 1;
+    }
 
     for(size_t i = 0; i < len; i++)
     {
@@ -72,6 +80,9 @@ size_t slip_encode(const void *src, void *dst, const size_t len, const bool end)
 
 ssize_t slip_searchFrameEnd(const void *buf, const size_t len)
 {
+    if(len == 0)
+        return 0;
+
     uint8_t *ptr = (uint8_t *) buf;
     for(ssize_t i = 0; i < (ssize_t) len; i++)
     {
@@ -82,20 +93,20 @@ ssize_t slip_searchFrameEnd(const void *buf, const size_t len)
     return -1;
 }
 
-ssize_t slip_decodeBlock(const void *block, const size_t blockLen)
+ssize_t slip_decodeBlock(const void *src, const void *dst, const size_t len)
 {
-    if((block == NULL) || (blockLen == 0))
+    if((src == NULL) || (dst == NULL))
         return -1;
 
     size_t decodedBytes = 0;
     size_t decodedPos   = 0;
-    uint8_t *src = (uint8_t *) block;
-    uint8_t *dst = (uint8_t *) block;
-    uint8_t prev = 0;
+    uint8_t *input  = (uint8_t *) src;
+    uint8_t *output = (uint8_t *) dst;
+    uint8_t prev    = 0;
 
-    for(size_t i = 0; i < blockLen; i++)
+    for(size_t i = 0; i < len; i++)
     {
-        uint8_t cur = src[i];
+        uint8_t cur = input[i];
         switch(cur)
         {
             case END:
@@ -109,9 +120,9 @@ ssize_t slip_decodeBlock(const void *block, const size_t blockLen)
             case ESC_END:
             {
                 if(prev == ESC)
-                    dst[decodedPos] = END;
+                    output[decodedPos] = END;
                 else
-                    dst[decodedPos] = cur;
+                    output[decodedPos] = cur;
                 decodedPos   += 1;
                 decodedBytes += 1;
             }
@@ -120,16 +131,16 @@ ssize_t slip_decodeBlock(const void *block, const size_t blockLen)
             case ESC_ESC:
             {
                 if(prev == ESC)
-                    dst[decodedPos] = ESC;
+                    output[decodedPos] = ESC;
                 else
-                    dst[decodedPos] = cur;
+                    output[decodedPos] = cur;
                 decodedPos   += 1;
                 decodedBytes += 1;
             }
                 break;
 
             default:
-                dst[decodedPos] = cur;
+                output[decodedPos] = cur;
                 decodedPos   += 1;
                 decodedBytes += 1;
                 break;

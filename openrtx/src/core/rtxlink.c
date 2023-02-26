@@ -38,7 +38,7 @@ enum errno
 };
 
 uint8_t       dataBuf[128];
-size_t        dataBufPos = 0;
+size_t        dataBufLen = 0;
 enum dataMode mode = DATAMODE_CAT;
 
 /**
@@ -50,8 +50,63 @@ enum dataMode mode = DATAMODE_CAT;
  */
 static inline void sendSlipFrame(const uint8_t *data, const size_t size)
 {
-    size_t len = slip_encode(data, dataBuf, size, true);
+    size_t len = slip_encode(data, dataBuf, size, true, true);
     com_writeBlock(dataBuf, len);
+}
+
+/**
+ * \internal
+ * Retrieve and decode a SLIP-encoded data frame from the com port.
+ *
+ * @return true when a data frame has been completely retrieved.
+ */
+static bool fetchSlipFrame()
+{
+    static uint8_t rxBuf[64];
+    static ssize_t rxBufLen = 0;
+    static ssize_t rxBufPos = 0;
+
+    // Fetch data from com port, exit on error or no data received.
+    if(rxBufLen <= 0)
+    {
+        rxBufPos = 0;
+        rxBufLen = com_readBlock(&rxBuf, 64);
+        if(rxBufLen <= 0)
+            return false;
+    }
+
+    // Strip the leading END character(s) before start decoding a new frame
+    if(dataBufLen == 0)
+    {
+        while(slip_searchFrameEnd(&rxBuf[rxBufPos], rxBufLen) == 0)
+        {
+            rxBufPos += 1;
+            rxBufLen -= 1;
+        }
+    }
+
+    // Decode SLIP-encoded data
+    ssize_t end      = slip_searchFrameEnd(&rxBuf[rxBufPos], rxBufLen);
+    size_t  toDecode = rxBufLen;
+    if(end > 0) toDecode = end + 1;
+
+    // Bad, too much bytes
+    if((dataBufLen + toDecode) > 128)
+    {
+        dataBufLen = 0;
+        rxBufLen  -= toDecode;
+        return false;
+    }
+
+    dataBufLen += slip_decodeBlock(&rxBuf[rxBufPos], &dataBuf[dataBufLen], toDecode);
+    rxBufLen   -= toDecode;
+    rxBufPos   += toDecode;
+
+    // Still some data to receive, wait for next round.
+    if(end < 0)
+        return false;
+
+    return true;
 }
 
 /**
@@ -151,23 +206,8 @@ void rtxlink_init()
 
 void rtxlink_task()
 {
-    // Fetch data from com port, exit on error or no data received.
-    uint8_t buf[64];
-    ssize_t bLen = com_readBlock(&buf, 64);
-    if(bLen <= 0) return;
-
-    // Decode SLIP-encoded data
-    ssize_t end = slip_searchFrameEnd(buf, bLen);
-    ssize_t len = slip_decodeBlock(buf, bLen);
-
-    if((len > 0) && ((dataBufPos + len) < 128))
-    {
-        memcpy(&dataBuf[dataBufPos], buf, len);
-        dataBufPos += len;
-    }
-
-    // Still some data to receive, wait for next round.
-    if(end < 0) return;
+    if(fetchSlipFrame() == false)
+        return;
 
     // Handle data
     switch(mode)
@@ -189,6 +229,9 @@ void rtxlink_task()
         case DATAMODE_XMODEM:       break;
         default: break;
     }
+
+    // Flush old data to start fetching a new frame
+    dataBufLen = 0;
 }
 
 void rtxlink_terminate()
