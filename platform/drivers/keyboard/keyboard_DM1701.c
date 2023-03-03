@@ -1,8 +1,9 @@
 /***************************************************************************
- *   Copyright (C) 2020 - 2022 by Federico Amedeo Izzo IU2NUO,             *
- *                                Niccolò Izzo IU2KIN                      *
- *                                Frederik Saraci IU2NRO                   *
- *                                Silvano Seva IU2KWO                      *
+ *   Copyright (C) 2023 by Federico Amedeo Izzo IU2NUO,                    *
+ *                         Niccolò Izzo IU2KIN,                            *
+ *                         Frederik Saraci IU2NRO                          *
+ *                         Silvano Seva IU2KWO                             *
+ *                         Amo BD4VOW                                      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -90,6 +91,8 @@ keyboard_t kbd_getKeys()
     gpio_setMode(LCD_D3, OUTPUT);
     gpio_setMode(LCD_D4, OUTPUT);
     gpio_setMode(LCD_D5, OUTPUT);
+    gpio_setMode(LCD_D6, OUTPUT);
+    gpio_setMode(LCD_D7, OUTPUT);
 
     gpio_clearPin(LCD_D0);
     gpio_clearPin(LCD_D1);
@@ -97,6 +100,8 @@ keyboard_t kbd_getKeys()
     gpio_clearPin(LCD_D3);
     gpio_clearPin(LCD_D4);
     gpio_clearPin(LCD_D5);
+    gpio_clearPin(LCD_D6);
+    gpio_clearPin(LCD_D7);
 
 
     gpio_setMode(LCD_D0, INPUT_PULL_DOWN);
@@ -105,6 +110,9 @@ keyboard_t kbd_getKeys()
     gpio_setMode(LCD_D3, INPUT_PULL_DOWN);
     gpio_setMode(LCD_D4, INPUT_PULL_DOWN);
     gpio_setMode(LCD_D5, INPUT_PULL_DOWN);
+    gpio_setMode(LCD_D6, INPUT_PULL_DOWN);
+    gpio_setMode(LCD_D7, INPUT_PULL_DOWN);
+
     /*
      * Scan keyboard by coloumns.
      * For key configuration, see: https://www.qsl.net/dl4yhf/RT3/md380_hw.html#keyboard
@@ -115,19 +123,17 @@ keyboard_t kbd_getKeys()
      * this means that we have to put a small delay before reading the GPIOs to
      * allow voltage to settle.
      */
-
-
     gpio_setPin(KB_ROW1);
 
     delayUs(10);
-    
     if(gpio_readPin(LCD_D0)) keys |= KEY_1;
     if(gpio_readPin(LCD_D1)) keys |= KEY_4;
     if(gpio_readPin(LCD_D2)) keys |= KEY_7;
     if(gpio_readPin(LCD_D3)) keys |= KEY_STAR;
     if(gpio_readPin(LCD_D4)) keys |= KEY_UP;
-    if(gpio_readPin(LCD_D5)) keys |= KEY_ENTER;
-    
+    // if(gpio_readPin(LCD_D5))
+    // if(gpio_readPin(LCD_D6))
+    // if(gpio_readPin(LCD_D7))
 
     gpio_clearPin(KB_ROW1);
     gpio_setPin(KB_ROW2);
@@ -139,6 +145,8 @@ keyboard_t kbd_getKeys()
     if(gpio_readPin(LCD_D3)) keys |= KEY_0;
     if(gpio_readPin(LCD_D4)) keys |= KEY_DOWN;
     if(gpio_readPin(LCD_D5)) keys |= KEY_ESC;
+    if(gpio_readPin(LCD_D6)) keys |= KEY_ENTER;
+    // if(gpio_readPin(LCD_D7))
 
     gpio_clearPin(KB_ROW2);
     gpio_setPin(KB_ROW3);
@@ -148,8 +156,10 @@ keyboard_t kbd_getKeys()
     if(gpio_readPin(LCD_D1)) keys |= KEY_6;
     if(gpio_readPin(LCD_D2)) keys |= KEY_9;
     if(gpio_readPin(LCD_D3)) keys |= KEY_HASH;
-    if(gpio_readPin(FUNC_SW)) keys |= KEY_F1;
-    if(gpio_readPin(MONI_SW)) keys |= KEY_MONI;
+    // if(gpio_readPin(LCD_D4))
+    if(gpio_readPin(LCD_D5)) keys |= KEY_F1;
+    if(gpio_readPin(LCD_D6)) keys |= KEY_MONI;
+    if(gpio_readPin(LCD_D7)) keys |= KEY_F2;
 
     gpio_clearPin(KB_ROW3);
     return keys;
