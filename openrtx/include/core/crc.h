@@ -37,6 +37,15 @@ extern "C" {
  */
 uint16_t crc_ccitt(const void *data, const size_t len);
 
+/**
+ * Compute the 8-bit CRC over a given block of data using polynomial 0xA6.
+ *
+ * @param data: input data.
+ * @param len: data length, in bytes.
+ * @return CRC.
+ */
+uint8_t crc_8bit(const void *data, const size_t len);
+
 #ifdef __cplusplus
 }
 #endif

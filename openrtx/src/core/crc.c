@@ -35,3 +35,22 @@ uint16_t crc_ccitt(const void *data, const size_t len)
 
     return crc;
 }
+
+uint8_t crc_8bit(const void *data, const size_t len)
+{
+    uint16_t crc = 0;
+    const uint8_t *buf = ((const uint8_t *) data);
+
+    for(size_t i = 0; i < len; i++)
+    {
+        crc ^= buf[i];
+
+        // TODO: find a faster implementation, like the one above
+        for (uint8_t i = 0; i < 8; i++)
+        {
+            crc = crc & 0x80 ? (crc << 1) ^ 0x4D : crc << 1;
+        }
+    }
+
+    return crc;
+}
