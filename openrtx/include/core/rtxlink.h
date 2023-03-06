@@ -21,9 +21,22 @@
 #ifndef RTXLINK_H
 #define RTXLINK_H
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum ProtocolID
+{
+    RTXLINK_FRAME_STDIO  = 0x00,
+    RTXLINK_FRAME_CAT    = 0x01,
+    RTXINK_FRAME_FMP     = 0x02,
+    RTXLINK_FRAME_XMODEM = 0x03
+};
+
 
 /**
  * Initialize the rtxlink managment module.
@@ -39,6 +52,33 @@ void rtxlink_task();
  * Shut down the rtxlink managment module.
  */
 void rtxlink_terminate();
+
+/**
+ * Send a block of data over rtxlink.
+ *
+ * @param proto: protocol ID.
+ * @param data: pointer to payload data;
+ * @param len: payload length in bytes.
+ * @return true on success, false if a transmission is alredy ongoing.
+ */
+bool rtxlink_send(const enum ProtocolID proto, const void *data, const size_t len);
+
+/**
+ * Register a protocol handler callback.
+ *
+ * @param proto: protocol ID.
+ * @param handler: callback function;
+ * @return true on success, false if a callback is already registered.
+ */
+bool rtxlink_setProtcolHandler(const enum ProtocolID proto,
+                               void (*handler)(const uint8_t *, size_t));
+
+/**
+ * Remove an registered protocol handler callback.
+ *
+ * @param proto: protocol ID.
+ */
+void rtxlink_removeProtocolHandler(const enum ProtocolID proto);
 
 #ifdef __cplusplus
 }

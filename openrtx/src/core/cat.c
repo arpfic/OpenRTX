@@ -53,6 +53,8 @@ static inline void cat_sendAck(const uint8_t status)
     uint8_t reply[2];
     reply[0] = CAT_PKT_ACK;
     reply[1] = status;
+
+    rtxlink_send(RTXLINK_FRAME_CAT, reply, 2);
 }
 
 /**
@@ -99,6 +101,7 @@ static void cat_cmdGet(const uint8_t *data, const size_t len)
     }
 
     replyLen += 1;
+    rtxlink_send(RTXLINK_FRAME_CAT, reply, replyLen);
 }
 
 /**
@@ -158,6 +161,8 @@ static void cat_cmdPeek(const uint8_t *data, const size_t len)
     {
         reply[i + 1] = ((uint8_t *) addr)[i];
     }
+
+    rtxlink_send(RTXLINK_FRAME_CAT, reply, len + 1);
 }
 
 /**
@@ -181,10 +186,10 @@ static void cat_protoCallback(const uint8_t *data, const size_t len)
 
 void cat_init()
 {
-
+    rtxlink_setProtcolHandler(RTXLINK_FRAME_CAT, cat_protoCallback);
 }
 
 void cat_terminate()
 {
-
+    rtxlink_removeProtocolHandler(RTXLINK_FRAME_CAT);
 }

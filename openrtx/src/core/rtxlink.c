@@ -19,38 +19,22 @@
  ***************************************************************************/
 
 #include <interfaces/com_port.h>
-#include <interfaces/platform.h>
-#include <datatypes.h>
 #include <rtxlink.h>
 #include <slip.h>
-#include <state.h>
+#include <crc.h>
 #include <stdbool.h>
 #include <string.h>
 
-enum dataMode
-{
-    DATAMODE_CAT,
-    DATAMODE_FILETRANSFER,
-    DATAMODE_XMODEM
-};
+typedef void (*protoHandler)(const uint8_t *, size_t);
 
-uint8_t       dataBuf[128];
-size_t        dataBufLen = 0;
-enum dataMode mode = DATAMODE_CAT;
+protoHandler handlers[4] = {NULL};
 
+uint8_t rxDataBuf[144];
+uint8_t txDataBuf[260];
+size_t  rxDataBufLen = 0;
+size_t  txDataBufLen = 0;
+size_t  txDataBufPos = 0;
 
-/**
- * \internal
- * Pack data into a SLIP-encoded data frame and send it over the com port.
- *
- * @param data: payload data.
- * @param size: payload size.
- */
-static inline void sendSlipFrame(const uint8_t *data, const size_t size)
-{
-    size_t len = slip_encode(data, dataBuf, size, true, true);
-    com_writeBlock(dataBuf, len);
-}
 
 /**
  * \internal
@@ -74,7 +58,7 @@ static bool fetchSlipFrame()
     }
 
     // Strip the leading END character(s) before start decoding a new frame
-    if(dataBufLen == 0)
+    if(rxDataBufLen == 0)
     {
         while(slip_searchFrameEnd(&rxBuf[rxBufPos], rxBufLen) == 0)
         {
@@ -89,16 +73,17 @@ static bool fetchSlipFrame()
     if(end > 0) toDecode = end + 1;
 
     // Bad, too much bytes
-    if((dataBufLen + toDecode) > 128)
+    if((rxDataBufLen + toDecode) > 128)
     {
-        dataBufLen = 0;
-        rxBufLen  -= toDecode;
+        rxDataBufLen = 0;
+        rxBufLen    -= toDecode;
         return false;
     }
 
-    dataBufLen += slip_decodeBlock(&rxBuf[rxBufPos], &dataBuf[dataBufLen], toDecode);
-    rxBufLen   -= toDecode;
-    rxBufPos   += toDecode;
+    rxDataBufLen += slip_decodeBlock(&rxBuf[rxBufPos], &rxDataBuf[rxDataBufLen],
+                                     toDecode);
+    rxBufLen -= toDecode;
+    rxBufPos += toDecode;
 
     // Still some data to receive, wait for next round.
     if(end < 0)
@@ -115,25 +100,78 @@ void rtxlink_init()
 
 void rtxlink_task()
 {
-    if(fetchSlipFrame() == false)
-        return;
-
-    // Handle data
-    switch(mode)
+    if(fetchSlipFrame() == true)
     {
-        case DATAMODE_CAT:
-            break;
+        uint8_t crc = crc_8bit(rxDataBuf, rxDataBufLen - 1);
+        if(crc == rxDataBuf[rxDataBufLen - 1])
+        {
+            uint8_t protocol = rxDataBuf[0];
+            uint8_t *data    = &rxDataBuf[1];
+            size_t  dataLen  = rxDataBufLen - 2;
 
-        case DATAMODE_FILETRANSFER: break;
-        case DATAMODE_XMODEM:       break;
-        default: break;
+            protoHandler handler = handlers[protocol];
+            if(handler != NULL)
+                handler(data, dataLen);
+        }
+    }
+
+    if(txDataBufPos < txDataBufLen)
+    {
+        size_t toSend = txDataBufPos - txDataBufLen;
+        if(toSend > 64) toSend = 64;
+
+        ssize_t sent = com_writeBlock(&txDataBuf[txDataBufPos], toSend);
+        if(sent > 0)
+            txDataBufPos += sent;
     }
 
     // Flush old data to start fetching a new frame
-    dataBufLen = 0;
+    rxDataBufLen = 0;
 }
 
 void rtxlink_terminate()
 {
 
+}
+
+bool rtxlink_send(const enum ProtocolID proto, const void *data, const size_t len)
+{
+    if(txDataBufLen != 0)
+        return false;
+
+    if(len > 128)
+        return false;
+
+    uint8_t frame[132];
+    frame[0] = proto;
+    memcpy(&frame[1], data, len);
+
+    uint8_t crc = crc_8bit(frame, len + 1);
+    frame[len + 1] = crc;
+
+    txDataBufLen = slip_encode(frame, txDataBuf, len + 2, true, true);
+    txDataBufPos = 0;
+
+    return true;
+}
+
+bool rtxlink_setProtcolHandler(const enum ProtocolID proto,
+                               void (*handler)(const uint8_t *, size_t))
+{
+    if(proto > RTXLINK_FRAME_XMODEM)
+        return false;
+
+    if(handlers[proto] != NULL)
+        return false;
+
+    handlers[proto] = handler;
+    return true;
+}
+
+void rtxlink_removeProtocolHandler(const enum ProtocolID proto)
+{
+    if(proto > RTXLINK_FRAME_XMODEM)
+        return;
+
+    handlers[proto] = NULL;
 }
