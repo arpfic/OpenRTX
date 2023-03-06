@@ -28,6 +28,7 @@
 #include <openrtx.h>
 #include <threads.h>
 #include <ui.h>
+#include <cat.h>
 #ifdef PLATFORM_LINUX
 #include <stdlib.h>
 #endif
@@ -45,6 +46,7 @@ void openrtx_init()
     kbd_init();         // Initialize keyboard driver
     ui_init();          // Initialize user interface
     vp_init();          // Initialize voice prompts
+    cat_init();         // Initialize CAT interface
     #ifdef SCREEN_CONTRAST
     display_setContrast(state.settings.contrast);
     #endif

@@ -34,12 +34,6 @@ enum dataMode
     DATAMODE_XMODEM
 };
 
-enum errno
-{
-    EBADR   = 53,   // Invalid request descriptor
-    EBADRQC = 56    // Invalid request code
-};
-
 uint8_t       dataBuf[128];
 size_t        dataBufLen = 0;
 enum dataMode mode = DATAMODE_CAT;
@@ -113,126 +107,6 @@ static bool fetchSlipFrame()
     return true;
 }
 
-/**
- * \internal
- * Send a CAT NACK reply.
- *
- * @param errcode: POSIX error code.
- */
-static inline void cat_sendNack(const uint8_t errcode)
-{
-    uint8_t reply[2];
-    reply[0] = 0x41;    // Ack
-    reply[1] = errcode;
-
-    sendSlipFrame(reply, 2);
-}
-
-/**
- * \internal
- * Handle the CAT "GET" command.
- *
- */
-static void cat_cmdGet(const uint8_t *param)
-{
-    if(dataBufPos != 3) cat_sendNack(EBADRQC);
-
-    uint8_t reply[128] = {0};
-    uint8_t replyLen   = 0;
-    reply[0]           = 0x44;
-
-    uint16_t id = (param[0] << 8) | param[1];
-    switch(id)
-    {
-        case 0x494E:    // Radio name
-        {
-            const hwInfo_t *hwinfo = platform_getHwInfo();
-            replyLen = sizeof(hwinfo->name);
-            memcpy(reply + 2, hwinfo->name, replyLen);
-            break;
-        }
-        case 0x5246:    // Receive Frequency
-        {
-            replyLen = sizeof(freq_t);
-            memcpy(reply + 2, (uint8_t *)&state.channel.rx_frequency, replyLen);
-            break;
-        }
-        case 0x5446:    // Transmit Frequency
-        {
-            replyLen = sizeof(freq_t);
-            memcpy(reply + 2, (uint8_t *)&state.channel.tx_frequency, replyLen);
-            break;
-        }
-
-        default:
-            cat_sendNack(EBADR);
-            break;
-    }
-
-    reply[1] = replyLen;
-    sendSlipFrame(reply, replyLen + 2);
-}
-
-/**
- * \internal
- * Handle the CAT "SET" command.
- *
- */
-static void cat_cmdSet(const uint8_t *param)
-{
-    uint16_t id  = (param[0] << 8) | param[1];
-    uint16_t len = param[2];
-    uint32_t val = *((uint32_t *) (param + 3));
-    uint8_t  reply[5] = {0};
-    reply[0] = 0x41;
-
-    switch(id)
-    {
-        case 0x5043:    // Reboot
-            break;
-
-        case 0x4654:    // File transfer mode
-            mode = DATAMODE_FILETRANSFER;
-            break;
-
-        case 0x5246:    // Set rx frequency
-            (void) val;
-            break;
-
-        case 0x5446:    // Set tx frequency
-            (void) val;
-            break;
-
-        default:
-            cat_sendNack(EBADR);
-            break;
-    }
-
-    sendSlipFrame(reply, 5);
-}
-
-/**
- * \internal
- * Handle the CAT "PEEK" command.
- *
- */
-static void cat_cmdPeek(const uint8_t *param)
-{
-    if(dataBufPos != 5) cat_sendNack(EBADRQC);
-
-    uint8_t  reply[5];
-    uint32_t addr = *((uint32_t *) param);
-
-    reply[0] = 0x44;    // Data
-    for(int i = 0; i < 4; i++)
-    {
-        reply[i + 1] = ((uint8_t *) addr)[i];
-    }
-
-    sendSlipFrame(reply, 5);
-}
-
-
 
 void rtxlink_init()
 {
@@ -248,16 +122,6 @@ void rtxlink_task()
     switch(mode)
     {
         case DATAMODE_CAT:
-        {
-            uint8_t cmd = dataBuf[0];
-            switch(cmd)
-            {
-                case 0x47: cat_cmdGet(&dataBuf[1]);  break; // Get parameter
-                case 0x50: cat_cmdPeek(&dataBuf[1]); break; // Peek memory
-                case 0x53: cat_cmdSet(&dataBuf[1]);  break; // Set parameter
-                default:   cat_sendNack(EBADRQC);    break; // Invalid opcode
-            }
-        }
             break;
 
         case DATAMODE_FILETRANSFER: break;
