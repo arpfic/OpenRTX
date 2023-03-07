@@ -35,7 +35,7 @@ extern "C" {
 #define SCREEN_HEIGHT 128
 
 /* Screen pixel format */
-#define PIX_FMT_RGB565
+#define PIX_FMT_BGR565
 
 /* Battery type */
 #define BAT_LIPO_2S
