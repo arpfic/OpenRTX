@@ -48,7 +48,7 @@ uint8_t crc_8bit(const void *data, const size_t len)
         // TODO: find a faster implementation, like the one above
         for (uint8_t i = 0; i < 8; i++)
         {
-            crc = crc & 0x80 ? (crc << 1) ^ 0x4D : crc << 1;
+            crc = crc & 0x80 ? (crc << 1) ^ 0xA6 : crc << 1;
         }
     }
 
