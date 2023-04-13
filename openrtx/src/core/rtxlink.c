@@ -32,8 +32,8 @@ protoHandler handlers[4] = {NULL};
 uint8_t rxDataBuf[144];
 uint8_t txDataBuf[260];
 size_t  rxDataBufLen = 0;
-size_t  txDataBufLen = 0;
-size_t  txDataBufPos = 0;
+size_t  txDataBufLen = 0; // Amount of data to be sent out
+size_t  txDataBufPos = 0; // Current position of data to be sent out
 
 
 /**
@@ -115,14 +115,18 @@ void rtxlink_task()
         }
     }
 
+    // There is some data left to send
     if(txDataBufPos < txDataBufLen)
     {
-        size_t toSend = txDataBufPos - txDataBufLen;
+        size_t toSend = txDataBufLen - txDataBufPos;
         if(toSend > 64) toSend = 64;
 
         ssize_t sent = com_writeBlock(&txDataBuf[txDataBufPos], toSend);
         if(sent > 0)
             txDataBufPos += sent;
+    } else {
+        txDataBufPos = 0;
+        txDataBufLen = 0;
     }
 
     // Flush old data to start fetching a new frame

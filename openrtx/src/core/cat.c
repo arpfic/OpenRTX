@@ -64,7 +64,7 @@ static inline void cat_sendAck(const uint8_t status)
  */
 static void cat_cmdGet(const uint8_t *data, const size_t len)
 {
-    if(len < 3)
+    if(len < 2)
         cat_sendAck(EBADR);
 
     uint8_t reply[17] = {0};
@@ -74,7 +74,7 @@ static void cat_cmdGet(const uint8_t *data, const size_t len)
     uint16_t id = (data[0] << 8) | data[1];
     switch(id)
     {
-        case 0x494E:    // Radio name
+        case 0x494E:    // GET Radio name
         {
             const hwInfo_t *hwinfo = platform_getHwInfo();
             replyLen = sizeof(hwinfo->name);
@@ -82,13 +82,13 @@ static void cat_cmdGet(const uint8_t *data, const size_t len)
             memcpy(&reply[1], hwinfo->name, replyLen);
             break;
         }
-        case 0x5246:    // Receive Frequency
+        case 0x5246:    // GET Receive Frequency
         {
             replyLen = 4;
             memcpy(&reply[1], &state.channel.rx_frequency, 4);
             break;
         }
-        case 0x5446:    // Transmit Frequency
+        case 0x5446:    // GET Transmit Frequency
         {
             replyLen = 4;
             memcpy(&reply[1], &state.channel.tx_frequency, 4);
@@ -111,7 +111,7 @@ static void cat_cmdGet(const uint8_t *data, const size_t len)
  */
 static void cat_cmdSet(const uint8_t *data, const size_t len)
 {
-    if(len < 3)
+    if(len < 2)
         cat_sendAck(EBADR);
 
     uint16_t id = (data[0] << 8) | data[1];
@@ -120,10 +120,15 @@ static void cat_cmdSet(const uint8_t *data, const size_t len)
         case 0x5043:    // Reboot
             break;
 
-        case 0x4654:    // File transfer mode
+        case 0x4654:    // SET File transfer mode
             break;
 
-        case 0x5346:    // Set frequency
+        case 0x5246:    // SET Receive frequency
+            memcpy(&state.channel.rx_frequency, &data[2], 4);
+            break;
+
+        case 0x5446:    // SET Transmit frequency
+            memcpy(&state.channel.tx_frequency, &data[2], 4);
             break;
 
         default:
