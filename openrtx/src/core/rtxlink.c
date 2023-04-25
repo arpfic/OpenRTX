@@ -159,7 +159,7 @@ bool rtxlink_send(const enum ProtocolID proto, const void *data, const size_t le
     return true;
 }
 
-bool rtxlink_setProtcolHandler(const enum ProtocolID proto,
+bool rtxlink_setProtocolHandler(const enum ProtocolID proto,
                                void (*handler)(const uint8_t *, size_t))
 {
     if(proto > RTXLINK_FRAME_XMODEM)

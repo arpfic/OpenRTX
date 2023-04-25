@@ -29,17 +29,20 @@
 extern "C" {
 #endif
 
+/**
+ * Identifiers for each sub-protocol of rtxlink
+ */
 enum ProtocolID
 {
     RTXLINK_FRAME_STDIO  = 0x00,
     RTXLINK_FRAME_CAT    = 0x01,
-    RTXINK_FRAME_FMP     = 0x02,
+    RTXLINK_FRAME_FMP     = 0x02,
     RTXLINK_FRAME_XMODEM = 0x03
 };
 
 
 /**
- * Initialize the rtxlink managment module.
+ * Initialize the rtxlink management module.
  */
 void rtxlink_init();
 
@@ -70,7 +73,7 @@ bool rtxlink_send(const enum ProtocolID proto, const void *data, const size_t le
  * @param handler: callback function;
  * @return true on success, false if a callback is already registered.
  */
-bool rtxlink_setProtcolHandler(const enum ProtocolID proto,
+bool rtxlink_setProtocolHandler(const enum ProtocolID proto,
                                void (*handler)(const uint8_t *, size_t));
 
 /**

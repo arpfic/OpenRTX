@@ -191,7 +191,7 @@ static void cat_protoCallback(const uint8_t *data, const size_t len)
 
 void cat_init()
 {
-    rtxlink_setProtcolHandler(RTXLINK_FRAME_CAT, cat_protoCallback);
+    rtxlink_setProtocolHandler(RTXLINK_FRAME_CAT, cat_protoCallback);
 }
 
 void cat_terminate()
