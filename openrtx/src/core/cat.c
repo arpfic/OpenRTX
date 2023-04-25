@@ -24,15 +24,6 @@
 #include <state.h>
 #include <cat.h>
 
-enum errno
-{
-    OK       = 0,    // Success
-    E2BIG    = 7,    // Argument list too long
-    EBADR    = 53,   // Invalid request descriptor
-    EBADRQC  = 56,   // Invalid request code
-    EGENERIC = 255   // Generic error
-};
-
 enum pktId
 {
     CAT_PKT_GET  = 0x47,

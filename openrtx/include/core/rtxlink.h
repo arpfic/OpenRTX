@@ -40,6 +40,17 @@ enum ProtocolID
     RTXLINK_FRAME_XMODEM = 0x03
 };
 
+/**
+ * Error codes used in OpenRTX
+ */
+enum errno
+{
+    OK       = 0,    // Success
+    E2BIG    = 7,    // Argument list too long
+    EBADR    = 53,   // Invalid request descriptor
+    EBADRQC  = 56,   // Invalid request code
+    EGENERIC = 255   // Generic error
+};
 
 /**
  * Initialize the rtxlink management module.

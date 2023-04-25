@@ -124,7 +124,10 @@ void rtxlink_task()
         ssize_t sent = com_writeBlock(&txDataBuf[txDataBufPos], toSend);
         if(sent > 0)
             txDataBufPos += sent;
-    } else {
+    }
+    // If all the data has already been sent
+    if(txDataBufPos >= txDataBufLen)
+    {
         txDataBufPos = 0;
         txDataBufLen = 0;
     }

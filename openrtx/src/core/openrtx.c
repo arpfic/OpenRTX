@@ -29,6 +29,7 @@
 #include <threads.h>
 #include <ui.h>
 #include <cat.h>
+#include <fmp.h>
 #ifdef PLATFORM_LINUX
 #include <stdlib.h>
 #endif
@@ -47,6 +48,7 @@ void openrtx_init()
     ui_init();          // Initialize user interface
     vp_init();          // Initialize voice prompts
     cat_init();         // Initialize CAT interface
+    fmp_init();         // Initialize FMP interface
     #ifdef SCREEN_CONTRAST
     display_setContrast(state.settings.contrast);
     #endif
