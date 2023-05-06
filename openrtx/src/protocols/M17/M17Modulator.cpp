@@ -97,7 +97,7 @@ void M17Modulator::start()
         return;
     }
 
-    outStream = outputStream_start(SINK_RTX, PRIO_TX, baseband_buffer.get(),
+    outStream = outputStream_start(outPath, baseband_buffer.get(),
                                    2*M17_FRAME_SAMPLES, BUF_CIRC_DOUBLE,
                                    M17_TX_SAMPLE_RATE);
     idleBuffer = outputStream_getIdleBuffer(outStream);

@@ -131,7 +131,7 @@ bool codec_startEncode(const enum AudioSource source)
     return true;
 }
 
-bool codec_startDecode(const enum AudioSink destination)
+bool codec_startDecode(const pathId path)
 {
     if(running) return false;
     if(audioBuf == NULL) return false;
@@ -139,8 +139,7 @@ bool codec_startDecode(const enum AudioSink destination)
     running = true;
 
     memset(audioBuf, 0x00, 320 * sizeof(stream_sample_t));
-    audioStream = outputStream_start(destination, PRIO_RX, audioBuf, 320,
-                                     BUF_CIRC_DOUBLE, 8000);
+    audioStream = outputStream_start(path, audioBuf, 320, BUF_CIRC_DOUBLE, 8000);
 
     if(audioStream == -1)
     {

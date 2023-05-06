@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include <audio_path.h>
 #include <interfaces/audio.h>
 
 #ifdef __cplusplus
@@ -106,8 +107,7 @@ void inputStream_stop(streamId id);
  * @return a unique identifier for the stream or -1 if the stream could not be
  * opened.
  */
-streamId outputStream_start(const enum AudioSink destination,
-                            const enum AudioPriority prio,
+streamId outputStream_start(const pathId path,
                             stream_sample_t * const buf,
                             const size_t length,
                             const enum BufMode mode,
@@ -144,7 +144,8 @@ bool outputStream_sync(const streamId id, const bool bufChanged);
 
 /**
  * Request termination of a currently ongoing output stream.
- * Stream is effectively stopped only when all the remaining data are sent.
+ * Stream is effectively stopped only when all the remaining data are sent,
+ * execution flow is blocked untill all data have been sent.
  *
  * @param id: identifier of the stream to be stopped.
  */

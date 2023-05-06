@@ -147,7 +147,7 @@ void OpMode_M17::rxState(rtxStatus_t *const status)
         demodulator.invertPhase(status->invertRxPhase);
 
         rxAudioPath = audioPath_request(SOURCE_MCU, SINK_SPK, PRIO_RX);
-        codec_startDecode(SINK_SPK);
+        codec_startDecode(rxAudioPath);
 
         radio_enableRx();
 
