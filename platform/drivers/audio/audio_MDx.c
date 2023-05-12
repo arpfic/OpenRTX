@@ -23,6 +23,8 @@
 #include <interfaces/radio.h>
 #include <interfaces/gpio.h>
 #include <hwconfig.h>
+#include "toneGenerator_MDx.h"
+#include "stm32_pwm.h"
 
 #define PATH(x,y) ((x << 4) | y)
 
@@ -38,6 +40,34 @@ static const uint8_t pathCompatibilityMatrix[9][9] =
     {    0   ,   1   ,   1   ,   0   ,   1   ,   1   ,   0   ,   0   ,   0   },  // MCU-SPK
     {    0   ,   0   ,   1   ,   1   ,   0   ,   1   ,   0   ,   0   ,   0   },  // MCU-RTX
     {    1   ,   1   ,   0   ,   1   ,   1   ,   0   ,   0   ,   0   ,   0   }   // MCU-MCU
+};
+
+
+static void stm32pwm_startCbk()
+{
+    toneGen_lockBeep();
+    TIM3->CCER |= TIM_CCER_CC3E;
+    TIM3->CR1  |= TIM_CR1_CEN;
+}
+
+static void stm32pwm_stopCbk()
+{
+    TIM3->CCER &= ~TIM_CCER_CC3E;
+    toneGen_unlockBeep();
+}
+
+static const struct PwmChannelCfg stm32pwm_cfg =
+{
+    &(TIM3->CCR3),
+    stm32pwm_startCbk,
+    stm32pwm_stopCbk
+};
+
+const struct audioDevice outputDevices[] =
+{
+    {NULL,                    NULL,          0, SINK_MCU},
+    {&stm32_pwm_audio_driver, &stm32pwm_cfg, 0, SINK_SPK},
+    {&stm32_pwm_audio_driver, &stm32pwm_cfg, 0, SINK_RTX},
 };
 
 
@@ -60,6 +90,8 @@ void audio_init()
     gpio_clearPin(MIC_PWR);         // Mic preamp. off
     #endif
     #endif
+
+    stm32pwm_init();
 }
 
 void audio_terminate()
@@ -71,6 +103,8 @@ void audio_terminate()
     gpio_clearPin(MIC_PWR);         // Mic preamp. off
     #endif
     #endif
+
+    stm32pwm_terminate();
 }
 
 void audio_connect(const enum AudioSource source, const enum AudioSink sink)
