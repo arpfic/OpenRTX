@@ -21,7 +21,7 @@
 #include <interfaces/audio.h>
 #include <interfaces/gpio.h>
 #include <hwconfig.h>
-
+#include "stm32_dac.h"
 
 static const uint8_t pathCompatibilityMatrix[9][9] =
 {
@@ -38,6 +38,14 @@ static const uint8_t pathCompatibilityMatrix[9][9] =
 };
 
 
+const struct audioDevice outputDevices[] =
+{
+    {NULL,                    0,                   0, SINK_MCU},
+    {&stm32_dac_audio_driver, (const void *) 1365, 0, SINK_RTX},
+    {&stm32_dac_audio_driver, 0,                   1, SINK_SPK},
+};
+
+
 void audio_init()
 {
     gpio_setMode(SPK_MUTE, OUTPUT);
@@ -47,12 +55,16 @@ void audio_init()
     gpio_setPin(SPK_MUTE);      // Off  = logic high
     gpio_clearPin(MIC_MUTE);    // Off  = logic low
     gpio_setPin(MIC_GAIN);      // gain = 40 dB
+
+    stm32dac_init();
 }
 
 void audio_terminate()
 {
     gpio_setPin(SPK_MUTE);
     gpio_clearPin(MIC_MUTE);
+
+    stm32dac_terminate();
 }
 
 void audio_connect(const enum AudioSource source, const enum AudioSink sink)
