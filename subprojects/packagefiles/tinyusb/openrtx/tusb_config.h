@@ -11,7 +11,7 @@
 
    
 // Select CFG_TUSB_MCU starting from CPU type
-#ifdef STM32F405xx
+#if defined (STM32F405xx) || defined (STM32F407xx)
   #define CFG_TUSB_MCU OPT_MCU_STM32F4
 #else
   #error CFG_TUSB_MCU must be defined

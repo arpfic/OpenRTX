@@ -71,6 +71,11 @@ void state_init()
     state.rtxStatus     = RTX_OFF;
     state.emergency     = false;
 
+    state.m17OutVolume = platform_getVolumeLevel();
+    state.m17OutVolume >>= 3;
+
+    state.micVolume = 3;
+
     // Force brightness field to be in range 0 - 100
     if(state.settings.brightness > 100) state.settings.brightness = 100;
 }
@@ -110,6 +115,9 @@ void state_task()
 
     state.charge = battery_getCharge(state.v_bat);
     state.rssi = rtx_getRssi();
+
+    state.m17OutVolume = platform_getVolumeLevel();
+    state.m17OutVolume >>= 3;
 
     #ifdef RTC_PRESENT
     state.time = rtc_getTime();

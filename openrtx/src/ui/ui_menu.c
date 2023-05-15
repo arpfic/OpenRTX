@@ -871,9 +871,14 @@ bool _ui_drawMacroMenu()
             gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_LEFT,
                       yellow_fab413, "1");
             gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_LEFT,
-                      color_white, "          ");
+                      color_white, "   in-");
+            gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_LEFT,
+                      color_white, "         %5d",
+                      last_state.micVolume);
             gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_CENTER,
-                      yellow_fab413, "2       ");
+                      yellow_fab413, "2");
+            gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_CENTER,
+                      color_white,   "        in+");
         }
         gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_RIGHT,
                   yellow_fab413, "3        ");

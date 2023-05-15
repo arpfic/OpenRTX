@@ -255,7 +255,7 @@ static void *encodeFunc(void *arg)
             dsp_dcRemoval(&dcrState, audio.data, audio.len);
 
             // Post-amplification stage
-            for(size_t i = 0; i < audio.len; i++) audio.data[i] *= micGainPost;
+            for(size_t i = 0; i < audio.len; i++) audio.data[i] *= state.micVolume;
             #endif
 
             // CODEC2 encodes 160ms of speech into 8 bytes: here we write the
@@ -328,7 +328,7 @@ static void *decodeFunc(void *arg)
 
             #ifdef PLATFORM_MD3x0
             // Bump up volume a little bit, as on MD3x0 is quite low
-            for(size_t i = 0; i < 160; i++) audioBuf[i] *= 2;
+            for(size_t i = 0; i < 160; i++) audioBuf[i] *= state.m17OutVolume;
             #endif
 
         }

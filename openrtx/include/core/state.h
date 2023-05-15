@@ -61,6 +61,8 @@ typedef struct
     bool       bank_enabled;
     uint16_t   bank;
     uint8_t    rtxStatus;
+    uint8_t    m17OutVolume;
+    uint8_t    micVolume;
 
     bool       emergency;
     settings_t settings;

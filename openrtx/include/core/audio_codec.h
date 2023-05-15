@@ -24,6 +24,7 @@
 #include <interfaces/audio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <state.h>
 
 #ifdef __cplusplus
 extern "C" {

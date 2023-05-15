@@ -23,7 +23,8 @@ tinyusb_src = ['src/tusb.c',
                'src/portable/st/stm32_fsdev/dcd_stm32_fsdev.c']
 
 # Define CPU type and clock speed via GCC command line arguments               
-add_project_arguments('-DSTM32F405xx',       language : 'c')
+#add_project_arguments('-DSTM32F405xx',       language : 'c')
+add_project_arguments('-DSTM32F407xx',       language : 'c')
 add_project_arguments('-DHSE_VALUE=8000000', language : 'c')
 
 

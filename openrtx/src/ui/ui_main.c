@@ -244,12 +244,21 @@ void _ui_drawMainBottom()
     }
 }
 
+void _ui_drawMiscDebug()
+{
+    gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_LEFT,
+    color_white, "out: %d", state.m17OutVolume);
+    gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_CENTER,
+    color_white, "in: %d", state.micVolume);
+}
+
 void _ui_drawMainVFO(ui_state_t* ui_state)
 {
     gfx_clearScreen();
     _ui_drawMainTop();
     _ui_drawModeInfo(ui_state);
     _ui_drawFrequency();
+    _ui_drawMiscDebug();
     _ui_drawMainBottom();
 }
 

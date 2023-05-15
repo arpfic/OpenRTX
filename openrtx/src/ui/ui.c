@@ -868,6 +868,11 @@ static void _ui_fsm_menuMacro(kbd_msg_t msg, bool *sync_rtx)
                                  state.channel.fm.txTone,
                                  queueFlags);
             }
+            if(state.channel.mode == OPMODE_M17)
+            {
+                if (state.micVolume > 1)
+                    state.micVolume--;
+            }
             break;
 
         case 2:
@@ -882,6 +887,11 @@ static void _ui_fsm_menuMacro(kbd_msg_t msg, bool *sync_rtx)
                                  state.channel.fm.txToneEn,
                                  state.channel.fm.txTone,
                                  queueFlags);
+            }
+            if(state.channel.mode == OPMODE_M17)
+            {
+                if (state.micVolume < 12)
+                    state.micVolume++;
             }
             break;
         case 3:
