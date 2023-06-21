@@ -24,9 +24,6 @@
 
 #include <stm32f4xx.h>
 
-/* Device has a working real time clock */
-#define RTC_PRESENT
-
 /* Screen dimensions */
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -75,7 +72,8 @@
 #define MIC_MUTE    GPIOC,4
 #define MIC_GAIN    GPIOC,5
 
-#define AIN_VBAT   GPIOA,3
+#define AIN_HWVER   GPIOA,3
+#define POWER_SW    GPIOA,15
 
 /* I2C for MCP4551 */
 #define I2C_SDA GPIOB,7

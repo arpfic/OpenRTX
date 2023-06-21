@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2020 - 2023 by Federico Amedeo Izzo IU2NUO,             *
+ *   Copyright (C) 2020 - 2022 by Federico Amedeo Izzo IU2NUO,             *
  *                                Niccolò Izzo IU2KIN                      *
  *                                Frederik Saraci IU2NRO                   *
  *                                Silvano Seva IU2KWO                      *
@@ -22,9 +22,8 @@
 #include <interfaces/cps_io.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <ui.h>
+#include <ui/ui_mod17.h>
 #include <string.h>
-#include "ui/ui_strings.h"
 
 void _ui_drawMainBackground()
 {
@@ -44,34 +43,10 @@ void _ui_drawMainTop()
               color_white, "%02d:%02d:%02d", local_time.hour,
               local_time.minute, local_time.second);
 #endif
-    // If the radio has no built-in battery, print input voltage
-#ifdef BAT_NONE
-    gfx_print(layout.top_pos, layout.top_font, TEXT_ALIGN_RIGHT,
-              color_white,"%.1fV", last_state.v_bat);
-#else
-    // Otherwise print battery icon on top bar, use 4 px padding
-    uint16_t bat_width = SCREEN_WIDTH / 9;
-    uint16_t bat_height = layout.top_h - (layout.status_v_pad * 2);
-    point_t bat_pos = {SCREEN_WIDTH - bat_width - layout.horizontal_pad,
-                       layout.status_v_pad};
-    gfx_drawBattery(bat_pos, bat_width, bat_height, last_state.charge);
-#endif
-    // Print radio mode on top bar
-    switch(last_state.channel.mode)
-    {
-        case OPMODE_FM:
-        gfx_print(layout.top_pos, layout.top_font, TEXT_ALIGN_LEFT,
-                  color_white, currentLanguage->fm);
-        break;
-        case OPMODE_DMR:
-        gfx_print(layout.top_pos, layout.top_font, TEXT_ALIGN_LEFT,
-                  color_white, currentLanguage->dmr);
-        break;
-        case OPMODE_M17:
-        gfx_print(layout.top_pos, layout.top_font, TEXT_ALIGN_LEFT,
-                  color_white, currentLanguage->m17);
-        break;
-    }
+
+    // Print the source callsign on top bar
+    gfx_print(layout.top_pos, layout.top_font, TEXT_ALIGN_LEFT,
+                  color_white, state.settings.callsign);
 }
 
 void _ui_drawBankChannel()
@@ -126,15 +101,24 @@ void _ui_drawModeInfo(ui_state_t* ui_state)
         break;
         case OPMODE_M17:
         {
-            // Print M17 Destination ID on line 3 of 3
-            const char *dst = NULL;
+            char *dst = NULL;
+
             if(ui_state->edit_mode)
                 dst = ui_state->new_callsign;
             else
                 dst = (!strnlen(cfg.destination_address, 10)) ?
-                    currentLanguage->broadcast : cfg.destination_address;
+                    "--" : cfg.destination_address;
+            // Print CAN
+            gfx_print(layout.top_pos, layout.top_font, TEXT_ALIGN_RIGHT,
+                  color_white, "CAN %02d", state.settings.m17_can);
             gfx_print(layout.line2_pos, layout.line2_font, TEXT_ALIGN_CENTER,
-                  color_white, "#%s", dst);
+                  color_white, "LAST");
+            // Print M17 Destination ID on line 2
+            gfx_print(layout.line3_pos, layout.line3_font, TEXT_ALIGN_CENTER,
+                  color_white, "%s", dst);
+            // Menu
+            gfx_print(layout.line5_pos, layout.line5_font, TEXT_ALIGN_RIGHT,
+                  color_white, "Menu");
             break;
         }
     }
@@ -235,21 +219,13 @@ void _ui_drawMainBottom()
                                 mic_level);
             break;
         case OPMODE_M17:
-            gfx_drawSmeterLevel(meter_pos,
+            /*gfx_drawSmeterLevel(meter_pos,
                                 meter_width,
                                 meter_height,
                                 rssi,
-                                mic_level);
+                                mic_level);*/
             break;
     }
-}
-
-void _ui_drawMiscDebug()
-{
-    gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_LEFT,
-    color_white, "out: %d", state.m17OutVolume);
-    gfx_print(layout.line1_pos, layout.top_font, TEXT_ALIGN_CENTER,
-    color_white, "in: %d", state.micVolume);
 }
 
 void _ui_drawMainVFO(ui_state_t* ui_state)
@@ -257,8 +233,7 @@ void _ui_drawMainVFO(ui_state_t* ui_state)
     gfx_clearScreen();
     _ui_drawMainTop();
     _ui_drawModeInfo(ui_state);
-    _ui_drawFrequency();
-    _ui_drawMiscDebug();
+    //_ui_drawFrequency(); //has to be replaced with Line 1 and Line 2
     _ui_drawMainBottom();
 }
 
@@ -276,6 +251,6 @@ void _ui_drawMainMEM(ui_state_t* ui_state)
     _ui_drawMainTop();
     _ui_drawBankChannel();
     _ui_drawModeInfo(ui_state);
-    _ui_drawFrequency();
+    //_ui_drawFrequency(); //has to be replaced with Line 1 and Line 2
     _ui_drawMainBottom();
 }

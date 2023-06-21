@@ -1,6 +1,9 @@
 /***************************************************************************
- *   Copyright (C) 2020 - 2023 by Silvano Seva IU2KWO                      *
- *                            and Niccolò Izzo IU2KIN                      *
+ *   Copyright (C) 2022 by Federico Amedeo Izzo IU2NUO,                    *
+ *                         Niccolò Izzo IU2KIN                             *
+ *                         Frederik Saraci IU2NRO                          *
+ *                         Silvano Seva IU2KWO                             *
+ *                         Mathis Schmieder DB9MAT                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -16,60 +19,24 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef ADC1_H
-#define ADC1_H
+#ifndef CALIBINFO_MOD17_H
+#define CALIBINFO_MOD17_H
 
+#include <datatypes.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
- * Driver for ADC1, used on Module 17 to sample input voltage
- *
- * NOTE: values inside the enum are the channel numbers of STM32 ADC1 peripheral.
+ * \brief Calibration data for Module17.
  */
-
-enum adcCh
+typedef struct
 {
-    ADC_HWVER_CH = 3,
-};
-
-/**
- * Initialise ADC1.
- */
-void adc1_init();
-
-/**
- * Turn off ADC1.
- */
-void adc1_terminate();
-
-/**
- * Get current measurement of a given channel returning the raw ADC value.
- *
- * NOTE: the mapping provided in enum adcCh DOES NOT correspond to the physical
- * ADC channel mapping!
- *
- * @param ch: channel number.
- * @return current value of the specified channel, in ADC counts.
- */
-uint16_t adc1_getRawSample(uint8_t ch);
-
-/**
- * Get current measurement of a given channel.
- *
- * NOTE: the mapping provided in enum adcCh DOES NOT correspond to the physical
- * ADC channel mapping!
- *
- * @param ch: channel number.
- * @return current value of the specified channel in mV.
- */
-uint16_t adc1_getMeasurement(uint8_t ch);
-
-#ifdef __cplusplus
+    uint16_t tx_wiper;
+    uint16_t rx_wiper;
+    uint8_t  mic_gain;
+    uint8_t  tx_invert : 1,
+             rx_invert : 1,
+             _padding  : 6;
 }
-#endif
+mod17Calib_t;
 
-#endif /* ADC1_H */
+#endif /* CALIBINFO_MOD17_H */

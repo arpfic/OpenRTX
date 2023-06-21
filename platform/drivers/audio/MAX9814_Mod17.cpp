@@ -1,8 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2021 - 2023 by Federico Amedeo Izzo IU2NUO,             *
- *                                Niccolò Izzo IU2KIN                      *
- *                                Frederik Saraci IU2NRO                   *
- *                                Silvano Seva IU2KWO                      *
+ *   Copyright (C) 2021 - 2022 by Mathis Schmieder DB9MAT                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,27 +15,28 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <stdio.h>
-#include <stdint.h>
-#include <interfaces/platform.h>
+#include <interfaces/gpio.h>
+#include <hwconfig.h>
+#include "MAX9814.h"
 
-int main()
+/*
+ * Implementation of MAX9814 gain setting
+ */
+
+void max9814_setGain(uint8_t gain)
 {
-    platform_init();
-
-    const hwInfo_t *info = platform_getHwInfo();
-
-    while(1)
+    if (gain == 0)
     {
-        getchar();
-        puts("** Hardware information **\r\n\r");
-        printf("- Hardware name: %s\r\n", info->name);
-        printf("- Band support: VHF %s, UHF %s\r\n", info->vhf_band ? "yes" : "no",
-                                                   info->uhf_band ? "yes" : "no");
-        printf("- VHF band range: %d - %d MHz\r\n", info->vhf_minFreq, info->vhf_maxFreq);
-        printf("- UHF band range: %d - %d MHz\r\n", info->uhf_minFreq, info->uhf_maxFreq);
-        printf("- Display type: %d\r\n\r\n", info->hw_version);
+        gpio_setMode(MIC_GAIN, OUTPUT);
+        gpio_setPin(MIC_GAIN); // 40 dB gain
     }
-
-    return 0;
+    else if (gain == 1)
+    {
+        gpio_setMode(MIC_GAIN, OUTPUT);
+        gpio_clearPin(MIC_GAIN); // 50 dB gain
+    }
+    else
+    {
+        gpio_setMode(MIC_GAIN, INPUT); // High impedance, 60 dB gain
+    }
 }

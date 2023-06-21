@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utils.h>
-#include <ui.h>
+#include <ui/ui_default.h>
 #include <beeps.h>
 #include "interfaces/cps_io.h"
 
@@ -532,9 +532,9 @@ void vp_announceM17Info(const channel_t* channel, bool isEditing,
     {
         vp_queuePrompt(PROMPT_EDIT);
     }
-    else if (state.m17_data.dst_addr[0] != '\0')
+    else if (state.m17_dest[0] != '\0')
     {
-        vp_queueString(state.m17_data.dst_addr, vpAnnounceCommonSymbols);
+        vp_queueString(state.m17_dest, vpAnnounceCommonSymbols);
     }
     else if ((channel != NULL) && (channel->m17.contact_index != 0))
     {

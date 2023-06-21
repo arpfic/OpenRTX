@@ -29,10 +29,17 @@
 #include <interfaces/audio.h>
 #include <ADC1_Mod17.h>
 #include <interfaces/nvmem.h>
+#include <calibInfo_Mod17.h>
 #include <MCP4551.h>
+
+mod17Calib_t    mod17CalData;
+static hwInfo_t hwInfo;
 
 void platform_init()
 {
+    gpio_setMode(POWER_SW, OUTPUT);
+    gpio_setPin(POWER_SW);
+
     /* Configure GPIOs */
     gpio_setMode(PTT_LED,  OUTPUT);
     gpio_setMode(SYNC_LED, OUTPUT);
@@ -53,10 +60,27 @@ void platform_init()
     i2c_init();
     mcp4551_init(SOFTPOT_RX);
     mcp4551_init(SOFTPOT_TX);
-    mcp4551_setWiper(SOFTPOT_TX, 0x100);
-    //mcp4551_setWiper(SOFTPOT_RX, MCP4551_WIPER_A);
-
     audio_init();
+
+    /* Set defaults for calibration */
+    mod17CalData.tx_wiper  = 0x080;
+    mod17CalData.rx_wiper  = 0x080;
+    mod17CalData.tx_invert = 0;
+    mod17CalData.rx_invert = 0;
+    mod17CalData.mic_gain  = 0;
+
+    /* Init hardware info data. */
+    memset(&hwInfo, 0x00, sizeof(hwInfo));
+    memcpy(hwInfo.name, "Module17", 8);
+
+    /*
+     * Hardware version is set using a voltage divider on PA3.
+     * - 0V:   rev. 0.1d or lower
+     * - 2.6V: rev 0.1e
+     */
+    uint16_t ver = adc1_getMeasurement(ADC_HWVER_CH);
+    if(ver >= 2500)
+        hwInfo.hw_version = 1;
 }
 
 void platform_terminate()
@@ -69,11 +93,13 @@ void platform_terminate()
     adc1_terminate();
     nvm_terminate();
     audio_terminate();
+
+    gpio_clearPin(POWER_SW);
 }
 
 uint16_t platform_getVbat()
 {
-   return adc1_getMeasurement(ADC_VBAT_CH)*5;
+   return 0;
 }
 
 uint8_t platform_getMicLevel()
@@ -157,12 +183,12 @@ void platform_beepStop()
 
 const void *platform_getCalibrationData()
 {
-    return NULL;
+    return ((const void *) &mod17CalData);
 }
 
 const hwInfo_t *platform_getHwInfo()
 {
-    return NULL;
+    return &hwInfo;
 }
 
 void platform_setBacklightLevel(uint8_t level)
